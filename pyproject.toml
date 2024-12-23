@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "simple-stock-management"
+version = "0.1.0"
+description = "Building an API for stock management"
+authors = ["AlekysCoelho <alekyscoelho@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+django = "^5.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

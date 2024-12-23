@@ -1,2 +1,2 @@
-# simple-stock-management
+# simple-stock-management (API)
 Building an API for stock management.

@@ -18,11 +18,17 @@ pytest = "^8.3.4"
 pytest-django = "^4.9.0"
 pytest-cov = "^6.0.0"
 
-[tool.pytest.ini_options]
+[pytest]
 DJANGO_SETTINGS_MODULE = "app.settings"
 python_files = ["tests*.py", "*_tests.py"]
 
-pytest-cov = "^6.0.0"
+[tool.coverage.run]
+omit = [
+    "*/migrations/*",
+    "*/migrations/*.*"
+]
+
+[tool.coverage.report]
 
 [build-system]
 requires = ["poetry-core"]

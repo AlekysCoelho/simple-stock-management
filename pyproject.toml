@@ -18,17 +18,39 @@ pytest = "^8.3.4"
 pytest-django = "^4.9.0"
 pytest-cov = "^6.0.0"
 
-[pytest]
+[tool.pytest.ini_options]
+testpaths = ["tests"] # Simplifique para a pasta raiz de testes
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
 DJANGO_SETTINGS_MODULE = "app.settings"
-python_files = ["tests*.py", "*_tests.py"]
+addopts = [
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--maxfail=5",
+    "--disable-warnings",
+]
 
-[tool.coverage.run]
+[tool.coverage.run] # Seção 'run' para configurar a coleta de cobertura
+branch = true # Habilita cobertura de branches (opcional, mas recomendado)
+source = ["app"] # Aponte diretamente para o diretório 'app'
+
 omit = [
-    "*/migrations/*",
-    "*/migrations/*.*"
+    "app/migrations/*",  # Use 'app/migrations/*' para ser mais específico
+    "app/tests/*",  # Exclua os testes da cobertura (importante!)
+    "app/*/__init__.py", # Exclua arquivos __init__.py
+    "app/asgi.py",   # Exclua arquivos específicos que não precisam de cobertura
+    "app/wsgi.py",
+    "manage.py" # Exclui o arquivo manage.py
 ]
 
 [tool.coverage.report]
+show_missing = true
+skip_covered = true
+threshold = 80
+
+[tool.coverage.html]
+directory = "coverage_html_report"
 
 [build-system]
 requires = ["poetry-core"]

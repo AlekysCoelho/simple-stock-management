@@ -171,5 +171,5 @@ cython_debug/
 .pypirc
 
 # tests files
-.pytesttest
-.coveragetest
+pytest
+coverage

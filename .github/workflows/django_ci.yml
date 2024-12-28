@@ -2,9 +2,9 @@ name: Django CI
 
 on:
   push:
-    pull_request:
     branches:
       - main
+  pull_request:
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - users: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
@@ -27,4 +27,4 @@ jobs:
 
       - name: Runing Django tests with coverage
         run: |
-          poetry run pytest app/ --cov=app --cov-config=pyproject.toml
+          poetry run pytest --cov

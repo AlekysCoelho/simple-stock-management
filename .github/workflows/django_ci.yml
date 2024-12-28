@@ -27,4 +27,4 @@ jobs:
 
       - name: Runing Django tests with coverage
         run: |
-          poetry run pytest app/ --cov=app --cov-report=term-missing --cov-fail-under=80 --cov-config=coverage.ini
+          poetry run pytest app/ --cov=app --cov-config=pyproject.toml

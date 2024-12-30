@@ -47,11 +47,25 @@ class Product(models.Model):
         _("Final Price Product"), max_digits=10, decimal_places=2, blank=True, null=True
     )
     stock = models.IntegerField(_("Quantity of Product in Stock"))
+    discount = models.DecimalField(
+        _("Discount Product"), max_digits=5, decimal_places=2, default=0.00
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.name} - {self.category.name}"
+
+    def save(self, *args, **kwargs):
+        if self.discount < 0:
+            raise ValueError("Discount must be greater than or equal to zero.")
+        if self.price <= 0:
+            raise ValueError("Price must be greater than zero.")
+        if self.stock < 0:
+            raise ValueError("Stock must be greater than or equal to zero.")
+
+        self.final_price = self.price - (self.price * self.discount / 100)
+        super().save(*args, **kwargs)
 
 
 class Category(models.Model):

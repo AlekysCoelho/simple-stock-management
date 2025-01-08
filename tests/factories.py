@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import factory
 import faker
 from faker import Faker
@@ -31,7 +33,7 @@ class CategoryFactory(factory.django.DjangoModelFactory):
         model = Category
         django_get_or_create = ("name",)
 
-    name = factory.Faker("name")
+    name = factory.Faker("word")
     description = factory.Faker("text")
 
 
@@ -39,8 +41,57 @@ class ProductFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Product
 
-    name = factory.Faker("name")
-    description = factory.Faker("text")
+    name = factory.Sequence(lambda n: f"Product {n} - {faker.word()}")
+    description = factory.LazyFunction(lambda: faker.paragraph(nb_sentences=3))
     category = factory.SubFactory(CategoryFactory)
-    price = factory.Faker("pydecimal", left_digits=4, right_digits=2, positive=True)
+    price = factory.Faker(
+        "pydecimal", left_digits=4, right_digits=2, positive=True, min_value=1
+    )
     stock = factory.Faker("random_int", min=1, max=100)
+    discount = factory.Faker("random_int", min=0, max=50)
+
+
+class NoDiscountProductFactory(ProductFactory):
+    discount = 0
+    final_price = factory.LazyAttribute(
+        lambda x: x.price - (x.price * x.discount / 100)
+    )
+
+
+class DiscountedProductFactory(ProductFactory):
+    discount = factory.Faker("random_int", min=1, max=50)
+    final_price = factory.LazyAttribute(
+        lambda x: x.price - (x.price * x.discount / 100)
+    )
+
+
+class MaxDiscountProductFactory(ProductFactory):
+    discount = 50
+    final_price = factory.LazyAttribute(
+        lambda x: x.price - (x.price * x.discount / 100)
+    )
+
+
+class MinDiscountProductFactory(ProductFactory):
+    discount = 1
+    final_price = factory.LazyAttribute(
+        lambda x: x.price - (x.price * x.discount / 100)
+    )
+
+
+class ZeroDiscountProductFactory(ProductFactory):
+    discount = 0
+    final_price = factory.LazyAttribute(
+        lambda x: x.price - (x.price * x.discount / 100)
+    )
+
+
+class CustomDiscountProductFactory(ProductFactory):
+    discount = factory.Sequence(lambda n: n)
+    final_price = factory.LazyAttribute(
+        lambda x: x.price - (x.price * x.discount / 100)
+    )
+
+
+class LowStockProductFactory(ProductFactory):
+    stock = factory.Faker("random_int", min=1, max=10)

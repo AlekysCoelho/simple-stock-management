@@ -1,6 +1,8 @@
 import pytest
+from ninja.testing import TestClient
 from pytest_factoryboy import register
 
+from app.api import api
 from tests.factories import (
     CategoryFactory,
     CustomDiscountProductFactory,
@@ -18,6 +20,11 @@ register(CategoryFactory)
 register(ProductFactory)
 register(NoDiscountProductFactory)
 register(DiscountedProductFactory)
+
+
+@pytest.fixture(scope="session")
+def api_client():
+    return TestClient(api)
 
 
 @pytest.fixture

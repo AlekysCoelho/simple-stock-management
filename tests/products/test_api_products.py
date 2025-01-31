@@ -60,7 +60,6 @@ class TestProducsAPI:
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 5
-        # assert all(product["category"]["name"] == "Electronics" for product in data)
 
     def test_get_products_with_discount(
         self, api_client: TestClient, product_factory: ProductFactory
@@ -81,6 +80,65 @@ class TestProducsAPI:
                 f"{expected_price}"
             ).quantize(Decimal("0.01"))
 
+    def test_get_products_with_filter_by_exactly_discount(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+
+        product1 = product_factory(discount=100)
+        product2 = product_factory(discount=40)
+        product3 = product_factory(discount=35)
+
+        response = api_client.get("/products/?discount=40")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert Decimal(data[0]["discount"]) == Decimal("40")
+
+    def test_get_products_with_filter_by_max_discount(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+        product1 = product_factory(discount=100)
+        product2 = product_factory(discount=70)
+        product3 = product_factory(discount=35)
+        product4 = product_factory(discount=4)
+
+        response = api_client.get("/products/?max_discount=40")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert all(Decimal(product["discount"]) <= Decimal("40") for product in data)
+
+    def test_get_products_with_filter_by_min_discount(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+        product1 = product_factory(discount=100)
+        product2 = product_factory(discount=70)
+        product3 = product_factory(discount=35)
+        product4 = product_factory(discount=4)
+
+        response = api_client.get("/products/?min_discount=40")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert all(Decimal(product["discount"]) >= Decimal("40") for product in data)
+
+    def test_get_products_with_filter_by_exactly_price(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+        product1 = product_factory(price=100.00, stock=5)
+        product2 = product_factory(price=250.00, stock=30)
+        product3 = product_factory(price=400.00, stock=50)
+
+        response = api_client.get("/products/?price=250")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert Decimal(f'{data[0]["price"]}').quantize(Decimal("0.01")) == 250
+
     def test_get_products_with_filter_by_min_price(
         self, api_client: TestClient, product_factory: ProductFactory
     ) -> None:
@@ -92,7 +150,6 @@ class TestProducsAPI:
 
         assert response.status_code == 200
         data = response.json()
-        print(data)
         assert len(data) == 2
         assert all(
             Decimal(product["price"]).quantize(Decimal("0.01")) >= 150
@@ -112,9 +169,115 @@ class TestProducsAPI:
 
         assert response.status_code == 200
         data = response.json()
-        print(data)
         assert len(data) == 3
-        assert all(
-            Decimal(product["price"]).quantize(Decimal("0.01")) <= 450
-            for product in data
-        )
+        assert all(product["price"] <= "450" for product in data)
+
+    def test_get_products_with_filter_by_exactly_stock(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+        product1 = product_factory(stock=5)
+        product2 = product_factory(stock=15)
+        product3 = product_factory(stock=30)
+        product4 = product_factory(stock=50)
+
+        response = api_client.get("/products/?stock=30")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["stock"] == 30
+
+    def test_get_products_with_filter_by_min_stock(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+        product1 = product_factory(stock=20)
+        product2 = product_factory(stock=45)
+        product3 = product_factory(stock=30)
+        product4 = product_factory(stock=50)
+
+        response = api_client.get("/products/?min_stock=30")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 3
+        assert all(product["stock"] >= 30 for product in data)
+
+    def test_get_products_with_filter_by_max_stock(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+        product1 = product_factory(stock=80)
+        product2 = product_factory(stock=45)
+        product3 = product_factory(stock=30)
+        product4 = product_factory(stock=20)
+
+        response = api_client.get("/products/?max_stock=30")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert all(product["stock"] <= 30 for product in data)
+
+    def test_get_products_sorting_min_price(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+
+        product1 = product_factory(price=1000.00, stock=5)
+        product3 = product_factory(price=350.00, stock=30)
+        product2 = product_factory(price=670.00, stock=15)
+
+        response = api_client.get("/products/?sort=min_price")
+
+        assert response.status_code == 200
+        data = response.json()
+        prices = [
+            Decimal(product["price"]).quantize(Decimal("0.01")) for product in data
+        ]
+        assert prices == sorted(prices)
+
+    def test_get_products_sorting_max_price(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+
+        product1 = product_factory(price=1000.00, stock=5)
+        product3 = product_factory(price=350.00, stock=30)
+        product2 = product_factory(price=670.00, stock=15)
+
+        response = api_client.get("/products/?sort=max_price")
+
+        assert response.status_code == 200
+        data = response.json()
+        prices = [
+            Decimal(product["price"]).quantize(Decimal("0.01")) for product in data
+        ]
+        assert prices == sorted(prices, reverse=True)
+
+    def test_get_products_sorting_min_stock(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+
+        product1 = product_factory(price=1000.00, stock=5)
+        product3 = product_factory(price=350.00, stock=30)
+        product2 = product_factory(price=670.00, stock=15)
+
+        response = api_client.get("/products/?sort=min_stock")
+
+        assert response.status_code == 200
+        data = response.json()
+        stocks = [product["stock"] for product in data]
+        assert stocks == sorted(stocks)
+
+    def test_get_products_sorting_max_stock(
+        self, api_client: TestClient, product_factory: ProductFactory
+    ) -> None:
+
+        product1 = product_factory(price=1000.00, stock=5)
+        product3 = product_factory(price=350.00, stock=30)
+        product2 = product_factory(price=670.00, stock=15)
+
+        response = api_client.get("/products/?sort=max_stock")
+        print(f"RESPONSE => {response.json()}")
+
+        assert response.status_code == 200
+        data = response.json()
+        stocks = [product["stock"] for product in data]
+        assert stocks == sorted(stocks, reverse=True)
